@@ -25,6 +25,12 @@ func NewRESTServer(ps person.Service, gs group.Service) RESTServer {
 		groupEndpoints.POST("/", groupHandlers.handleCreateGroup)
 	}
 
+	personHandlers := NewPersonHandlers(ps)
+	personEndpoints := v1.Group("/person")
+	{
+		personEndpoints.POST("/", personHandlers.handleCreatePerson)
+	}
+
 	return RESTServer{
 		personService: ps,
 		engine:        router,

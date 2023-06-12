@@ -11,6 +11,7 @@ type Person struct {
 	Id       int    `json:"id"`
 	Name     string `json:"name"`
 	Password string `json:"-"` // never exported in json
+	Email    string `json:"-"`
 }
 
 // Store - this interface defines all methods the service needs to work
@@ -46,7 +47,7 @@ func (s *Service) GetAllPerson(ctx context.Context) ([]Person, error) {
 	return p, nil
 }
 
-func (s *Service) CreatePerson(ctx context.Context, name string, clearPassword string) (Person, error) {
+func (s *Service) CreatePerson(ctx context.Context, name string, email string, clearPassword string) (Person, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(clearPassword), bcrypt.DefaultCost)
 	if err != nil {
 		return Person{}, err
@@ -54,6 +55,7 @@ func (s *Service) CreatePerson(ctx context.Context, name string, clearPassword s
 
 	p := Person{
 		Name:     name,
+		Email:    email,
 		Password: string(hashedPassword),
 	}
 

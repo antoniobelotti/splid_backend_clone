@@ -1,0 +1,4 @@
+CREATE EXTENSION citext;
+
+ALTER TABLE person
+ADD COLUMN email CITEXT UNIQUE NOT NULL DEFAULT 'non_existsent@empty.com';
