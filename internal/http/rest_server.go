@@ -19,13 +19,6 @@ func NewRESTServer(ps person.Service, gs group.Service) RESTServer {
 
 	v1 := router.Group("/api/v1")
 
-	//authHandlers := NewAuthHandlers(ps)
-	//authEndpoints := v1.Group("/authEndpoints")
-	//{
-	//	authEndpoints.POST("/signup", authHandlers.handleSignUpJWT)
-	//	authEndpoints.POST("/login", authHandlers.handleLoginJWT)
-	//}
-
 	groupHandlers := NewGroupHandlers(gs)
 	groupEndpoints := v1.Group("/group")
 	{
