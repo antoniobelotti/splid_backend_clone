@@ -1,0 +1,6 @@
+.idea
+
+*.test
+*.out
+
+go.work

@@ -1,0 +1,29 @@
+version: '3'
+
+tasks:
+  default:
+    cmds:
+      - task --list
+      - echo "run \`task --summary task-name\` to print complete command summary"
+    silent: true
+
+  test:
+    desc: run tests using the machine environment
+    summary:
+      Tests are not containerized (yet). For unit tests it's not really a problem, but it requires a go install on dev machine.
+      Integration tests (there are none so far) would require a database (because testing on a real db >>> mocking)_{except when it's not}.
+      This can be done with another docker-compose.test.yml to keep dev and test separate. It's a little more involved...
+    cmds:
+      - go test -v ./...
+
+  run:
+    desc: start the containerized infrastructure and run the app
+    cmds:
+      - docker compose up --build
+
+  migration:
+    desc: create new SQL migration files
+    summary:
+      SQL migration files are stored in ./migrations and are managed using https://github.com/golang-migrate/migrate.
+    cmds:
+      - migrate create -ext sql -dir migrations -seq {{.CLI_ARGS}}
