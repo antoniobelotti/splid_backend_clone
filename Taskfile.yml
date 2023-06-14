@@ -5,7 +5,7 @@ vars:
   COMPOSE_DEV_FILE: docker-compose.dev.yml
   DEV_ENV_FILE: .env.dev
   COMPOSE_TEST_FILE: docker-compose.test.yml
-  TEST_ENV_FILE: .env.dev
+  TEST_ENV_FILE: .env.test
 
 tasks:
   default:
