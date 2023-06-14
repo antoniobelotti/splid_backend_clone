@@ -9,5 +9,4 @@ RUN go mod download
 RUN go get github.com/githubnemo/CompileDaemon
 RUN go install github.com/githubnemo/CompileDaemon
 
-ADD ./migrations /migrations
 ENTRYPOINT CompileDaemon -build="go build -o /build/server cmd/server/main.go" -command="/build/server"

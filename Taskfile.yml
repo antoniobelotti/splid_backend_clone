@@ -19,11 +19,14 @@ tasks:
   run:
     desc: start the containerized infrastructure and run the app
     cmds:
-      - docker compose up --build
+      - docker compose -f docker-compose.yml --env-file=.env.dev up --build
 
   migration:
     desc: create new SQL migration files
     summary:
       SQL migration files are stored in ./migrations and are managed using https://github.com/golang-migrate/migrate.
+      golan-migrate is run as a Docker container. No need to have it installed.
     cmds:
-      - migrate create -ext sql -dir migrations -seq {{.CLI_ARGS}}
+      # -u $(id -u):$(id -g) is to have correct file permission on host. If you remove this,
+      # the files will be owned by root (because migrate in the container runs as root)
+      - docker run -v "$(pwd)/migrations":/migrations:rw -u $(id -u):$(id -g) migrate/migrate:v4.16.2 create -ext sql -dir migrations -seq {{.CLI_ARGS}}

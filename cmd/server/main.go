@@ -16,12 +16,6 @@ func Run() error {
 	}
 	fmt.Println("successfully connected to db")
 
-	err = db.MigrateDB()
-	if err != nil {
-		return err
-	}
-	fmt.Println("database schema up to date")
-
 	ps := person.NewService(db)
 	gs := group.NewService(db)
 

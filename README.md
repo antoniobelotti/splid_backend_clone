@@ -12,8 +12,7 @@ Requires Docker installed
 #### to actually develop 
 requires:
 - Docker 
-- [task](https://taskfile.dev) 
-- [migrate](https://github.com/golang-migrate/migrate) 
+- [task](https://taskfile.dev)
 
 
     task run
