@@ -1,5 +1,12 @@
 version: '3'
 
+vars:
+  MIGRATE_IMAGE: migrate/migrate:v4.16.2
+  COMPOSE_DEV_FILE: docker-compose.dev.yml
+  DEV_ENV_FILE: .env.dev
+  COMPOSE_TEST_FILE: docker-compose.test.yml
+  TEST_ENV_FILE: .env.dev
+
 tasks:
   default:
     cmds:
@@ -16,17 +23,34 @@ tasks:
     cmds:
       - go test -v ./...
 
+  integrationtests:
+    desc: run integration tests
+    cmds:
+      # first, start db and apply migrations
+      - docker compose -f {{.COMPOSE_TEST_FILE}} --env-file={{.TEST_ENV_FILE}} up --exit-code-from migrate
+      # when migrations are done, restart database (because --exit-code-from stops every service) in the background
+      - docker compose -f {{.COMPOSE_TEST_FILE}} --env-file={{.TEST_ENV_FILE}} up db -d
+      # finally run tests
+      - go test -v ./...
+
   run:
     desc: start the containerized infrastructure and run the app
     cmds:
-      - docker compose -f docker-compose.yml --env-file=.env.dev up --build
+      - docker compose -f {{.COMPOSE_DEV_FILE}} --env-file={{.DEV_ENV_FILE}} up --build
 
   migration:
     desc: create new SQL migration files
     summary:
+      run like `task migration -- migration_file_name`
+      
       SQL migration files are stored in ./migrations and are managed using https://github.com/golang-migrate/migrate.
+      
       golan-migrate is run as a Docker container. No need to have it installed.
     cmds:
       # -u $(id -u):$(id -g) is to have correct file permission on host. If you remove this,
       # the files will be owned by root (because migrate in the container runs as root)
-      - docker run -v "$(pwd)/migrations":/migrations:rw -u $(id -u):$(id -g) migrate/migrate:v4.16.2 create -ext sql -dir migrations -seq {{.CLI_ARGS}}
+      - docker run -v "$(pwd)/migrations":/migrations:rw -u $(id -u):$(id -g) {{.MIGRATE_IMAGE}} create -ext sql -dir migrations -seq {{.CLI_ARGS}}
+
+  # TODO: running migration up and down if needed
+  # docker compose -f {{.COMPOSE_DEV_FILE}} run --rm migrate up
+  # docker compose -f {{.COMPOSE_DEV_FILE}} run --rm migrate down

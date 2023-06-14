@@ -22,13 +22,13 @@ func NewRESTServer(ps person.Service, gs group.Service) RESTServer {
 	groupHandlers := NewGroupHandlers(gs)
 	groupEndpoints := v1.Group("/group")
 	{
-		groupEndpoints.POST("/", groupHandlers.handleCreateGroup)
+		groupEndpoints.POST("", groupHandlers.handleCreateGroup)
 	}
 
 	personHandlers := NewPersonHandlers(ps)
 	personEndpoints := v1.Group("/person")
 	{
-		personEndpoints.POST("/", personHandlers.handleCreatePerson)
+		personEndpoints.POST("", personHandlers.handleCreatePerson)
 	}
 
 	return RESTServer{
