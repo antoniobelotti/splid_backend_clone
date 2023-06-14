@@ -6,13 +6,31 @@ import (
 	"github.com/antoniobelotti/splid_backend_clone/internal/group"
 	"github.com/antoniobelotti/splid_backend_clone/internal/person"
 	"github.com/antoniobelotti/splid_backend_clone/internal/postgresdb"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
-func TestCreatePersonChecksValidation(t *testing.T) {
+type PersonHandlerTestSuite struct {
+	suite.Suite
+	server RESTServer
+}
+
+func TestPersonHandlerTestSuite(t *testing.T) {
+	suite.Run(t, new(PersonHandlerTestSuite))
+}
+
+func (suite *PersonHandlerTestSuite) SetupSuite() {
+	db, _ := postgresdb.NewDatabase()
+
+	ps := person.NewService(db)
+	gs := group.NewService(db)
+
+	suite.server = NewRESTServer(ps, gs)
+}
+
+func (suite *PersonHandlerTestSuite) TestCreatePersonChecksValidation() {
 	table := []struct {
 		requestBody    CreatePersonRequestBody
 		respHttpStatus int
@@ -83,21 +101,14 @@ func TestCreatePersonChecksValidation(t *testing.T) {
 		},
 	}
 
-	db, _ := postgresdb.NewDatabase()
-
-	ps := person.NewService(db)
-	gs := group.NewService(db)
-
-	server := NewRESTServer(ps, gs)
-
 	for _, testCase := range table {
 		jsonBody, _ := json.Marshal(testCase.requestBody)
 		req := httptest.NewRequest(http.MethodPost, "/api/v1/person", bytes.NewBuffer(jsonBody))
 		w := httptest.NewRecorder()
 
-		server.engine.ServeHTTP(w, req)
+		suite.server.engine.ServeHTTP(w, req)
 
-		assert.Equal(t, testCase.respHttpStatus, w.Code)
+		suite.Equal(testCase.respHttpStatus, w.Code)
 	}
 
 }
