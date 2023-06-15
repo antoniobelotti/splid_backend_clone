@@ -3,8 +3,8 @@ package postgresdb
 import (
 	"errors"
 	"fmt"
-	_ "github.com/jackc/pgx/v5"
 	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 	"os"
 )
 
@@ -16,14 +16,22 @@ type PostgresDatabase struct {
 	*sqlx.DB
 }
 
+func mustGetEnv(key string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		panic(fmt.Sprintf("%s env variable is not set", key))
+	}
+	return value
+}
+
 func NewDatabase() (*PostgresDatabase, error) {
 	connectionStr := fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s sslmode=%s",
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_PORT"),
-		os.Getenv("DB_NAME"),
-		os.Getenv("DB_USERNAME"),
-		os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_SSLMODE"),
+		mustGetEnv("DB_HOST"),
+		mustGetEnv("DB_PORT"),
+		mustGetEnv("DB_NAME"),
+		mustGetEnv("DB_USERNAME"),
+		mustGetEnv("DB_PASSWORD"),
+		mustGetEnv("DB_SSLMODE"),
 	)
 	db, err := sqlx.Connect("postgres", connectionStr)
 	if err != nil {
