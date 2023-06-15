@@ -31,7 +31,7 @@ tasks:
       # when migrations are done, restart database (because --exit-code-from stops every service) in the background
       - docker compose -f {{.COMPOSE_TEST_FILE}} --env-file={{.TEST_ENV_FILE}} up db -d
       # finally run tests
-      - go test -v ./...
+      - export $( grep -vE "^(#.*|\s*)$" {{.TEST_ENV_FILE}}) && go test -v ./...
 
   run:
     desc: start the containerized infrastructure and run the app

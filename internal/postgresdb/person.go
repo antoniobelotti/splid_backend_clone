@@ -24,15 +24,14 @@ func (pg *PostgresDatabase) GetAll(ctx context.Context) ([]person.Person, error)
 }
 
 func (pg *PostgresDatabase) Create(ctx context.Context, p person.Person) error {
-	_, err := pg.NamedExecContext(
+	_, err := pg.ExecContext(
 		ctx,
-		`INSERT INTO person(name, password) VALUES (:name,:password);`,
-		p,
+		`INSERT INTO person(name, email, password) VALUES ($1, $2, $3)`,
+		p.Name, p.Email, p.Password,
 	)
 
 	if err != nil {
 		return err
 	}
-
 	return nil
 }

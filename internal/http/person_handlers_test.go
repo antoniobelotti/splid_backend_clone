@@ -104,11 +104,53 @@ func (suite *PersonHandlerTestSuite) TestCreatePersonChecksValidation() {
 	for _, testCase := range table {
 		jsonBody, _ := json.Marshal(testCase.requestBody)
 		req := httptest.NewRequest(http.MethodPost, "/api/v1/person", bytes.NewBuffer(jsonBody))
+		req.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()
 
-		suite.server.engine.ServeHTTP(w, req)
+		suite.server.ServeHTTP(w, req)
 
 		suite.Equal(testCase.respHttpStatus, w.Code)
+	}
+}
+
+func (suite *PersonHandlerTestSuite) TestCreatePerson() {
+	table := []struct {
+		requestBody    CreatePersonRequestBody
+		respHttpStatus int
+		respBody       person.Person
+	}{
+		{
+			requestBody: CreatePersonRequestBody{
+				Name:            "name",
+				Email:           "cds@mail.com",
+				Password:        "password123",
+				ConfirmPassword: "password123",
+			},
+			respHttpStatus: http.StatusCreated,
+			respBody: person.Person{
+				Name:  "name",
+				Email: "cds@mail.com",
+			},
+		},
+	}
+
+	for _, testCase := range table {
+		jsonBody, _ := json.Marshal(testCase.requestBody)
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/person", bytes.NewBuffer(jsonBody))
+		req.Header.Set("Content-Type", "application/json")
+
+		w := httptest.NewRecorder()
+
+		suite.server.ServeHTTP(w, req)
+
+		suite.Equal(testCase.respHttpStatus, w.Code)
+
+		var got person.Person
+		err := json.Unmarshal(w.Body.Bytes(), &got)
+		if err != nil {
+			suite.Fail(err.Error())
+		}
+		suite.Equal(testCase.respBody, got)
 	}
 
 }

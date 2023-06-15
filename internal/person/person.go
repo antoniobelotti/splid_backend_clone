@@ -11,7 +11,7 @@ type Person struct {
 	Id       int    `json:"id"`
 	Name     string `json:"name"`
 	Password string `json:"-"` // never exported in json
-	Email    string `json:"-"`
+	Email    string `json:"email"`
 }
 
 // Store - this interface defines all methods the service needs to work

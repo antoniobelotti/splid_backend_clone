@@ -4,6 +4,8 @@ import (
 	"github.com/antoniobelotti/splid_backend_clone/internal/person"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
+	"strings"
 )
 
 type PersonHandlers struct {
@@ -23,10 +25,6 @@ type CreatePersonRequestBody struct {
 	ConfirmPassword string `json:"confirm-password" binding:"min=8,required,eqfield=Password"`
 }
 
-type CreatePersonResponseBody struct {
-	PersonName string `json:"name"`
-}
-
 func (h *PersonHandlers) handleCreatePerson(ctx *gin.Context) {
 	requestBody := CreatePersonRequestBody{}
 
@@ -41,8 +39,24 @@ func (h *PersonHandlers) handleCreatePerson(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, CreatePersonResponseBody{
-		PersonName: p.Name,
-	})
+	ctx.JSON(http.StatusCreated, p)
+	return
+}
+
+func (h *PersonHandlers) handleGetPerson(ctx *gin.Context) {
+	personIdStr := ctx.Param("personId")
+	personId, err := strconv.Atoi(strings.TrimSpace(personIdStr))
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "malformed request url"})
+		return
+	}
+
+	p, err := h.service.GetPerson(ctx, personId)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "person not found"})
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, p)
 	return
 }
