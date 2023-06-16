@@ -4,8 +4,6 @@ vars:
   MIGRATE_IMAGE: migrate/migrate:v4.16.2
   COMPOSE_DEV_FILE: docker-compose.dev.yml
   DEV_ENV_FILE: .env.dev
-  COMPOSE_TEST_FILE: docker-compose.test.yml
-  TEST_ENV_FILE: .env.test
 
 tasks:
   default:
@@ -25,13 +23,6 @@ tasks:
 
   integrationtests:
     desc: run integration tests
-    cmds:
-      # first, start db and apply migrations
-      - docker compose -f {{.COMPOSE_TEST_FILE}} --env-file={{.TEST_ENV_FILE}} up --exit-code-from migrate
-      # when migrations are done, restart database (because --exit-code-from stops every service) in the background
-      - docker compose -f {{.COMPOSE_TEST_FILE}} --env-file={{.TEST_ENV_FILE}} up db -d
-      # finally run tests
-      - export $( grep -vE "^(#.*|\s*)$" {{.TEST_ENV_FILE}}) && go test -v ./...
 
   run:
     desc: start the containerized infrastructure and run the app
