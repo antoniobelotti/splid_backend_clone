@@ -23,15 +23,22 @@ func (pg *PostgresDatabase) GetAll(ctx context.Context) ([]person.Person, error)
 	return res, nil
 }
 
-func (pg *PostgresDatabase) Create(ctx context.Context, p person.Person) error {
-	_, err := pg.ExecContext(
+func (pg *PostgresDatabase) Create(ctx context.Context, p person.Person) (int, error) {
+	res, err := pg.ExecContext(
 		ctx,
-		`INSERT INTO person(name, email, password) VALUES ($1, $2, $3)`,
+		`INSERT INTO person(name, email, password) VALUES ($1, $2, $3)  RETURNING id`,
 		p.Name, p.Email, p.Password,
 	)
 
 	if err != nil {
-		return err
+		return 0, err
 	}
-	return nil
+
+	// It's not rowsaffected but the `RETURNING id` from the query.
+	id, err := res.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+
+	return int(id), nil
 }

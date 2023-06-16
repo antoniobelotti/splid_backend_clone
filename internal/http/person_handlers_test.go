@@ -1,3 +1,6 @@
+//go:build integration
+// +build integration
+
 package http
 
 import (
@@ -8,15 +11,23 @@ import (
 	"github.com/antoniobelotti/splid_backend_clone/internal/group"
 	"github.com/antoniobelotti/splid_backend_clone/internal/person"
 	"github.com/antoniobelotti/splid_backend_clone/internal/postgresdb"
+	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/suite"
+	"github.com/testcontainers/testcontainers-go"
+	postgrestc "github.com/testcontainers/testcontainers-go/modules/postgres"
+	"github.com/testcontainers/testcontainers-go/wait"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 type PersonHandlerTestSuite struct {
 	suite.Suite
+	psqlContainer *postgrestc.PostgresContainer
 	server        RESTServer
 	personService person.Service
 	groupService  group.Service
@@ -26,8 +37,47 @@ func TestPersonHandlerTestSuite(t *testing.T) {
 	suite.Run(t, new(PersonHandlerTestSuite))
 }
 
-func (suite *PersonHandlerTestSuite) SetupSuite() {
-	db, _ := postgresdb.NewDatabase()
+func (suite *PersonHandlerTestSuite) TearDownTest() {
+	ctx := context.Background()
+
+	suite.Require().NoError(suite.psqlContainer.Terminate(ctx))
+}
+
+func (suite *PersonHandlerTestSuite) SetupTest() {
+	ctx := context.Background()
+
+	files, err := os.ReadDir("/home/anto/GolandProjects/splid_backend_clone/migrations/")
+	suite.Require().NoError(err)
+
+	/* I was unable to make golang-migrate work in this setting.
+	as a workaround, pass all *.up.sql migration files to the container. They will be executed after start up,
+	hopefully in the correct order
+	*/
+	var migrationFiles []string
+	for _, file := range files {
+		if strings.Contains(file.Name(), "up") {
+			migrationFiles = append(migrationFiles, filepath.Join("/home/anto/GolandProjects/splid_backend_clone/migrations/", file.Name()))
+		}
+	}
+
+	container, err := postgrestc.RunContainer(ctx,
+		testcontainers.WithImage("postgres:12-alpine"),
+		postgrestc.WithInitScripts(migrationFiles...),
+		postgrestc.WithDatabase("postgres"),
+		postgrestc.WithUsername("postgres"),
+		postgrestc.WithPassword("postgres"),
+		testcontainers.WithWaitStrategy(wait.ForLog("database system is ready to accept connections").WithOccurrence(2).WithStartupTimeout(5*time.Second)),
+	)
+	suite.Require().NoError(err)
+
+	connStr, err := container.ConnectionString(ctx, "sslmode=disable", "application_name=test")
+
+	suite.psqlContainer = container
+
+	db, err := postgresdb.NewDatabase(connStr)
+	suite.Require().NoError(err)
+
+	// this is where golang-migrate should apply migrations
 
 	suite.personService = person.NewService(db)
 	suite.groupService = group.NewService(db)
@@ -137,6 +187,19 @@ func (suite *PersonHandlerTestSuite) TestCreatePerson() {
 				Email: "cds@mail.com",
 			},
 		},
+		{
+			requestBody: CreatePersonRequestBody{
+				Name:            "sdfhaskdjgbasdfg",
+				Email:           "uniquejhbkjhabfds@mail.com",
+				Password:        "password123",
+				ConfirmPassword: "password123",
+			},
+			respHttpStatus: http.StatusCreated,
+			respBody: person.Person{
+				Name:  "sdfhaskdjgbasdfg",
+				Email: "uniquejhbkjhabfds@mail.com",
+			},
+		},
 	}
 
 	for _, testCase := range table {
@@ -152,9 +215,11 @@ func (suite *PersonHandlerTestSuite) TestCreatePerson() {
 
 		var got person.Person
 		err := json.Unmarshal(w.Body.Bytes(), &got)
-		if err != nil {
-			suite.Fail(err.Error())
-		}
+		suite.Require().NoError(err)
+
+		// Id is set by api
+		testCase.respBody.Id = got.Id
+
 		suite.Equal(testCase.respBody, got)
 	}
 
@@ -168,40 +233,27 @@ func (suite *PersonHandlerTestSuite) TestGetPerson() {
 		"email@mail.com",
 		"password123",
 	)
-	if err != nil {
-		if !strings.Contains(err.Error(), "duplicate") {
-			suite.Fail(err.Error())
-		}
+	suite.Require().NoError(err)
+
+	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/person/%d", p.Id), nil)
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+
+	suite.server.ServeHTTP(w, req)
+	fmt.Println(w.Body)
+	suite.Equal(http.StatusOK, w.Code)
+
+	want := person.Person{
+		Id:       p.Id,
+		Name:     p.Name,
+		Password: "",
+		Email:    p.Email,
 	}
 
-	table := []struct {
-		personId       int
-		respHttpStatus int
-		respBody       person.Person
-	}{
-		{
-			personId:       0,
-			respHttpStatus: http.StatusOK,
-			respBody:       p,
-		},
-	}
-
-	for _, testCase := range table {
-		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/person/%d", testCase.personId), nil)
-		req.Header.Set("Content-Type", "application/json")
-
-		w := httptest.NewRecorder()
-
-		suite.server.ServeHTTP(w, req)
-
-		suite.Equal(testCase.respHttpStatus, w.Code)
-
-		var got person.Person
-		err := json.Unmarshal(w.Body.Bytes(), &got)
-		if err != nil {
-			suite.Fail(err.Error())
-		}
-		suite.Equal(testCase.respBody, got)
-	}
+	var got person.Person
+	err = json.Unmarshal(w.Body.Bytes(), &got)
+	suite.Require().NoError(err)
+	suite.Equal(want, got)
 
 }

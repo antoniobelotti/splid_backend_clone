@@ -1,3 +1,6 @@
+//go:build unit
+// +build unit
+
 package group
 
 import (
@@ -6,6 +9,8 @@ import (
 )
 
 func TestInvitationCodeGeneration(t *testing.T) {
+	t.Parallel()
+
 	groupName := "test"
 	ownerId := 42
 

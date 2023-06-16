@@ -28,14 +28,10 @@ func NewRESTServer(ps person.Service, gs group.Service) RESTServer {
 	personEndpoints := v1.Group("/person")
 	{
 		personEndpoints.POST("", personHandlers.handleCreatePerson)
-		personEndpoints.GET("/{:personId}", personHandlers.handleGetPerson)
+		personEndpoints.GET("/:personId", personHandlers.handleGetPerson)
 	}
 
 	return RESTServer{
 		router,
 	}
-}
-
-func (s *RESTServer) Run(port string) error {
-	return s.Run(":" + port)
 }

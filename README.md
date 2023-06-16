@@ -13,6 +13,7 @@ Requires Docker installed
 requires:
 - Docker 
 - [task](https://taskfile.dev)
+- go 1.20
 
 
     task run

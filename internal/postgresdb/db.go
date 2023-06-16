@@ -24,17 +24,22 @@ func mustGetEnv(key string) string {
 	return value
 }
 
-func NewDatabase() (*PostgresDatabase, error) {
-	connectionStr := fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s sslmode=%s",
-		mustGetEnv("DB_HOST"),
-		mustGetEnv("DB_PORT"),
-		mustGetEnv("DB_NAME"),
-		mustGetEnv("DB_USERNAME"),
-		mustGetEnv("DB_PASSWORD"),
-		mustGetEnv("DB_SSLMODE"),
-	)
+func NewDatabase(connectionStr string) (*PostgresDatabase, error) {
+	if connectionStr == "" {
+		fmt.Println("building postgres connection string from environment variables")
+		connectionStr = fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s sslmode=%s",
+			mustGetEnv("DB_HOST"),
+			mustGetEnv("DB_PORT"),
+			mustGetEnv("DB_NAME"),
+			mustGetEnv("DB_USERNAME"),
+			mustGetEnv("DB_PASSWORD"),
+			mustGetEnv("DB_SSLMODE"),
+		)
+	}
+
 	db, err := sqlx.Connect("postgres", connectionStr)
 	if err != nil {
+		fmt.Println(err.Error())
 		return &PostgresDatabase{}, ErrDBConnectionError
 	}
 

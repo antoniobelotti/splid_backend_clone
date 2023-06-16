@@ -12,17 +12,20 @@ tasks:
       - echo "run \`task --summary task-name\` to print complete command summary"
     silent: true
 
-  test:
-    desc: run tests using the machine environment
+  unit:
+    desc: run unit tests
     summary:
-      Tests are not containerized (yet). For unit tests it's not really a problem, but it requires a go install on dev machine.
-      Integration tests (there are none so far) would require a database (because testing on a real db >>> mocking)_{except when it's not}.
-      This can be done with another docker-compose.test.yml to keep dev and test separate. It's a little more involved...
+      Run all unit tests on host machine
     cmds:
-      - go test -v ./...
+      - go test -v -tags=unit ./...
 
-  integrationtests:
+  integration:
     desc: run integration tests
+    summary:
+      Run all integration tests. Tests use the testcontainers library. All infrastructure is run in docker containers,
+      test code is run on host. Test code itself specifies what containers it needs.
+    cmds:
+      - go test -v -tags=integration ./...
 
   run:
     desc: start the containerized infrastructure and run the app

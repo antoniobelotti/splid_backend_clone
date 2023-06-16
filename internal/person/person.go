@@ -18,7 +18,7 @@ type Person struct {
 type Store interface {
 	GetById(ctx context.Context, id int) (Person, error)
 	GetAll(ctx context.Context) ([]Person, error)
-	Create(ctx context.Context, person Person) error
+	Create(ctx context.Context, person Person) (int, error)
 }
 
 // Service - will handle all logic related to Person types
@@ -59,9 +59,11 @@ func (s *Service) CreatePerson(ctx context.Context, name string, email string, c
 		Password: string(hashedPassword),
 	}
 
-	err = s.store.Create(ctx, p)
+	id, err := s.store.Create(ctx, p)
 	if err != nil {
 		return Person{}, err
 	}
+	p.Id = id
+
 	return p, nil
 }

@@ -10,7 +10,7 @@ import (
 )
 
 func Run() error {
-	db, err := postgresdb.NewDatabase()
+	db, err := postgresdb.NewDatabase("")
 	if err != nil {
 		return err
 	}
@@ -20,7 +20,7 @@ func Run() error {
 	gs := group.NewService(db)
 
 	restServer := http.NewRESTServer(ps, gs)
-	err = restServer.Run(os.Getenv("HTTP_PORT"))
+	err = restServer.Run(":" + os.Getenv("HTTP_PORT"))
 	if err != nil {
 		return err
 	}

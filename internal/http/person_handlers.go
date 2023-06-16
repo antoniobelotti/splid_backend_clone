@@ -57,6 +57,6 @@ func (h *PersonHandlers) handleGetPerson(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, p)
+	ctx.JSON(http.StatusOK, p)
 	return
 }
