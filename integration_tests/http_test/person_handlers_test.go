@@ -236,11 +236,28 @@ func (suite *PersonHandlerTestSuite) TestGetPerson() {
 	)
 	suite.Require().NoError(err)
 
-	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/person/%d", p.Id), nil)
-	req.Header.Set("Content-Type", "application/json")
+	// perform login
+	j, err := json.Marshal(internal_http.LoginRequestBody{
+		Email:    p.Email,
+		Password: "password123",
+	})
+	suite.Require().NoError(err)
 
+	loginReq := httptest.NewRequest(http.MethodPost, "/api/v1/person/login", bytes.NewBuffer(j))
+	loginReq.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
+	suite.server.ServeHTTP(w, loginReq)
+	var lr internal_http.LoginResponseBody
+	err = json.Unmarshal(w.Body.Bytes(), &lr)
+	suite.Require().NoError(err)
+	suite.NotEmpty(lr.SignedToken)
 
+	// try to retrieve person
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/person", nil)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", lr.SignedToken))
+
+	w = httptest.NewRecorder()
 	suite.server.ServeHTTP(w, req)
 
 	suite.Equal(http.StatusOK, w.Code)
@@ -256,7 +273,6 @@ func (suite *PersonHandlerTestSuite) TestGetPerson() {
 	err = json.Unmarshal(w.Body.Bytes(), &got)
 	suite.Require().NoError(err)
 	suite.Equal(want, got)
-
 }
 
 func (suite *PersonHandlerTestSuite) TestPersonLoginSuccess() {

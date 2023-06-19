@@ -2,6 +2,7 @@ package http
 
 import (
 	"github.com/antoniobelotti/splid_backend_clone/internal/group"
+	"github.com/antoniobelotti/splid_backend_clone/internal/http/authentication"
 	"github.com/antoniobelotti/splid_backend_clone/internal/person"
 	"github.com/gin-gonic/gin"
 )
@@ -28,7 +29,7 @@ func NewRESTServer(ps person.Service, gs group.Service) RESTServer {
 	personEndpoints := v1.Group("/person")
 	{
 		personEndpoints.POST("", personHandlers.handleCreatePerson)
-		personEndpoints.GET("/:personId", personHandlers.handleGetPerson)
+		personEndpoints.GET("", authentication.AuthenticateMiddleware(), personHandlers.handleGetPerson)
 		personEndpoints.POST("/login", personHandlers.handleLogin)
 	}
 
