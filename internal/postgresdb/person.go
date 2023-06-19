@@ -26,12 +26,6 @@ func (pg *PostgresDatabase) GetByEmail(ctx context.Context, email string) (perso
 	return p, err
 }
 
-func (pg *PostgresDatabase) GetAll(ctx context.Context) ([]person.Person, error) {
-	var res []person.Person
-	err := pg.SelectContext(ctx, &res, `SELECT * FROM person`)
-	return res, err
-}
-
 func (pg *PostgresDatabase) Create(ctx context.Context, p person.Person) (int, error) {
 	res, err := pg.ExecContext(
 		ctx,
