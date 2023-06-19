@@ -35,12 +35,8 @@ func NewService(store Store) Service {
 	return Service{store: store}
 }
 
-func (s *Service) GetPerson(ctx context.Context, id int) (Person, error) {
-	p, err := s.store.GetById(ctx, id)
-	if err != nil {
-		return Person{}, err
-	}
-	return p, nil
+func (s *Service) GetPersonById(ctx context.Context, id int) (Person, error) {
+	return s.store.GetById(ctx, id)
 }
 
 func (s *Service) GetPersonByEmail(ctx context.Context, email string) (Person, error) {
@@ -50,7 +46,7 @@ func (s *Service) GetPersonByEmail(ctx context.Context, email string) (Person, e
 func (s *Service) CreatePerson(ctx context.Context, name string, email string, clearPassword string) (Person, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(clearPassword), bcrypt.DefaultCost)
 	if err != nil {
-		return Person{}, err
+		return Person{}, ErrUnexpected
 	}
 
 	p := Person{

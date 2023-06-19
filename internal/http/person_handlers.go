@@ -55,7 +55,7 @@ func (h *PersonHandlers) handleGetPerson(ctx *gin.Context) {
 		return
 	}
 
-	p, err := h.service.GetPerson(ctx, personId)
+	p, err := h.service.GetPersonById(ctx, personId)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "person not found"})
 		return

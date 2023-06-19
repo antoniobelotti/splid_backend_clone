@@ -9,6 +9,14 @@ import (
 func (pg *PostgresDatabase) GetById(ctx context.Context, personId int) (person.Person, error) {
 	var p person.Person
 	err := pg.GetContext(ctx, &p, `SELECT * FROM person WHERE id=$1`, personId)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return p, person.ErrPersonNotFound
+		default:
+			return p, person.ErrUnexpected
+		}
+	}
 	return p, err
 }
 
