@@ -2,6 +2,7 @@ package person
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -22,6 +23,11 @@ type Store interface {
 	GetByEmail(ctx context.Context, email string) (Person, error)
 }
 
+var (
+	ErrPersonNotFound = errors.New("person_test does not exist")
+	ErrUnexpected     = errors.New("unexpected error")
+)
+
 // Service - will handle all logic related to Person types
 type Service struct {
 	store Store
@@ -40,11 +46,7 @@ func (s *Service) GetPerson(ctx context.Context, id int) (Person, error) {
 }
 
 func (s *Service) GetPersonByEmail(ctx context.Context, email string) (Person, error) {
-	p, err := s.store.GetByEmail(ctx, email)
-	if err != nil {
-		return Person{}, err
-	}
-	return p, nil
+	return s.store.GetByEmail(ctx, email)
 }
 
 func (s *Service) GetAllPerson(ctx context.Context) ([]Person, error) {

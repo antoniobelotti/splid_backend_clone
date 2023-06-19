@@ -1,7 +1,7 @@
 //go:build integration
 // +build integration
 
-package http
+package http_test
 
 import (
 	"bytes"
@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/antoniobelotti/splid_backend_clone/internal/group"
+	internal_http "github.com/antoniobelotti/splid_backend_clone/internal/http"
 	"github.com/antoniobelotti/splid_backend_clone/internal/person"
 	"github.com/antoniobelotti/splid_backend_clone/internal/postgresdb"
 	_ "github.com/lib/pq"
@@ -28,7 +29,7 @@ import (
 type PersonHandlerTestSuite struct {
 	suite.Suite
 	psqlContainer *postgrestc.PostgresContainer
-	server        RESTServer
+	server        internal_http.RESTServer
 	personService person.Service
 	groupService  group.Service
 }
@@ -82,17 +83,17 @@ func (suite *PersonHandlerTestSuite) SetupTest() {
 	suite.personService = person.NewService(db)
 	suite.groupService = group.NewService(db)
 
-	suite.server = NewRESTServer(suite.personService, suite.groupService)
+	suite.server = internal_http.NewRESTServer(suite.personService, suite.groupService)
 }
 
 func (suite *PersonHandlerTestSuite) TestCreatePersonChecksValidation() {
 	table := []struct {
-		requestBody    CreatePersonRequestBody
+		requestBody    internal_http.CreatePersonRequestBody
 		respHttpStatus int
 		respBody       string
 	}{
 		{
-			requestBody: CreatePersonRequestBody{
+			requestBody: internal_http.CreatePersonRequestBody{
 				Name:            "",
 				Email:           "cds@mail.com",
 				Password:        "password123",
@@ -101,7 +102,7 @@ func (suite *PersonHandlerTestSuite) TestCreatePersonChecksValidation() {
 			respHttpStatus: http.StatusBadRequest,
 		},
 		{
-			requestBody: CreatePersonRequestBody{
+			requestBody: internal_http.CreatePersonRequestBody{
 				Name:            "name",
 				Email:           "@mail.com",
 				Password:        "password123",
@@ -110,7 +111,7 @@ func (suite *PersonHandlerTestSuite) TestCreatePersonChecksValidation() {
 			respHttpStatus: http.StatusBadRequest,
 		},
 		{
-			requestBody: CreatePersonRequestBody{
+			requestBody: internal_http.CreatePersonRequestBody{
 				Name:            "name",
 				Email:           "cdsmail.com",
 				Password:        "password123",
@@ -119,7 +120,7 @@ func (suite *PersonHandlerTestSuite) TestCreatePersonChecksValidation() {
 			respHttpStatus: http.StatusBadRequest,
 		},
 		{
-			requestBody: CreatePersonRequestBody{
+			requestBody: internal_http.CreatePersonRequestBody{
 				Name:            "name",
 				Email:           "cds@mail.com",
 				Password:        "pass",
@@ -128,7 +129,7 @@ func (suite *PersonHandlerTestSuite) TestCreatePersonChecksValidation() {
 			respHttpStatus: http.StatusBadRequest,
 		},
 		{
-			requestBody: CreatePersonRequestBody{
+			requestBody: internal_http.CreatePersonRequestBody{
 				Name:            "name",
 				Email:           "cds@mail.com",
 				Password:        "password123",
@@ -137,7 +138,7 @@ func (suite *PersonHandlerTestSuite) TestCreatePersonChecksValidation() {
 			respHttpStatus: http.StatusBadRequest,
 		},
 		{
-			requestBody: CreatePersonRequestBody{
+			requestBody: internal_http.CreatePersonRequestBody{
 				Name:            "test",
 				Email:           "cds@mail.com",
 				Password:        "",
@@ -146,7 +147,7 @@ func (suite *PersonHandlerTestSuite) TestCreatePersonChecksValidation() {
 			respHttpStatus: http.StatusBadRequest,
 		},
 		{
-			requestBody: CreatePersonRequestBody{
+			requestBody: internal_http.CreatePersonRequestBody{
 				Name:            "name",
 				Email:           "",
 				Password:        "password123",
@@ -170,12 +171,12 @@ func (suite *PersonHandlerTestSuite) TestCreatePersonChecksValidation() {
 
 func (suite *PersonHandlerTestSuite) TestCreatePerson() {
 	table := []struct {
-		requestBody    CreatePersonRequestBody
+		requestBody    internal_http.CreatePersonRequestBody
 		respHttpStatus int
 		respBody       person.Person
 	}{
 		{
-			requestBody: CreatePersonRequestBody{
+			requestBody: internal_http.CreatePersonRequestBody{
 				Name:            "name",
 				Email:           "cds@mail.com",
 				Password:        "password123",
@@ -188,7 +189,7 @@ func (suite *PersonHandlerTestSuite) TestCreatePerson() {
 			},
 		},
 		{
-			requestBody: CreatePersonRequestBody{
+			requestBody: internal_http.CreatePersonRequestBody{
 				Name:            "sdfhaskdjgbasdfg",
 				Email:           "uniquejhbkjhabfds@mail.com",
 				Password:        "password123",
@@ -267,7 +268,7 @@ func (suite *PersonHandlerTestSuite) TestPersonLoginSuccess() {
 	)
 	suite.Require().NoError(err)
 
-	rb := LoginRequestBody{
+	rb := internal_http.LoginRequestBody{
 		Email:    p.Email,
 		Password: "password123",
 	}
@@ -282,7 +283,7 @@ func (suite *PersonHandlerTestSuite) TestPersonLoginSuccess() {
 
 	suite.Equal(http.StatusOK, w.Code)
 
-	var got LoginResponseBody
+	var got internal_http.LoginResponseBody
 	err = json.Unmarshal(w.Body.Bytes(), &got)
 	suite.Require().NoError(err)
 	suite.NotEmpty(got.SignedToken)
@@ -297,7 +298,7 @@ func (suite *PersonHandlerTestSuite) TestPersonLoginFail() {
 	)
 	suite.Require().NoError(err)
 
-	rb := LoginRequestBody{
+	rb := internal_http.LoginRequestBody{
 		Email:    p.Email,
 		Password: "WrongPassword",
 	}
