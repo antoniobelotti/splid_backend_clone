@@ -3,9 +3,13 @@ package http
 import (
 	"github.com/antoniobelotti/splid_backend_clone/internal/person"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type PersonHandlers struct {
@@ -59,4 +63,62 @@ func (h *PersonHandlers) handleGetPerson(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, p)
 	return
+}
+
+type LoginRequestBody struct {
+	Email    string `json:"email" binding:"email,required"`
+	Password string `json:"password" binding:"min=8,required"`
+}
+
+type LoginResponseBody struct {
+	SignedToken string `json:"signed-token"`
+}
+
+func (h *PersonHandlers) handleLogin(ctx *gin.Context) {
+	requestBody := LoginRequestBody{}
+
+	if err := ctx.ShouldBindJSON(&requestBody); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "malformed request body"})
+		return
+	}
+
+	p, err := h.service.GetPersonByEmail(ctx, requestBody.Email)
+	if err != nil {
+		// TODO: better error handling
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "internal server error"})
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(p.Password), []byte(requestBody.Password))
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	// crate signedJwtToken
+	var (
+		signingKey     []byte
+		token          *jwt.Token
+		signedJwtToken string
+	)
+
+	expirationTime := time.Now().Add(1440 * time.Minute)
+	claims := jwt.MapClaims{
+		"UserID":    p.Id,
+		"ExpiresAt": expirationTime.Unix(),
+	}
+
+	strKey := os.Getenv("JWT_SIGNING_KEY")
+	if strKey == "" {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "unable to login: internal server error"})
+		return
+	}
+
+	signingKey = []byte(strKey)
+	token = jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signedJwtToken, err = token.SignedString(signingKey)
+
+	ctx.JSON(http.StatusOK, LoginResponseBody{
+		SignedToken: signedJwtToken,
+	})
 }

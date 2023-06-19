@@ -2,6 +2,7 @@ package postgresdb
 
 import (
 	"context"
+	"errors"
 	"github.com/antoniobelotti/splid_backend_clone/internal/person"
 )
 
@@ -12,6 +13,20 @@ func (pg *PostgresDatabase) GetById(ctx context.Context, personId int) (person.P
 		return person.Person{}, err
 	}
 	return p, nil
+}
+
+func (pg *PostgresDatabase) GetByEmail(ctx context.Context, email string) (person.Person, error) {
+	var pp []person.Person
+	err := pg.SelectContext(ctx, &pp, `SELECT * FROM person WHERE email=$1`, email)
+	if err != nil {
+		return person.Person{}, err
+	}
+	if len(pp) != 1 {
+		// should never happen
+		return person.Person{}, errors.New("multiple person returned with same email. This should not happen as email is unique in the db")
+	}
+
+	return pp[0], nil
 }
 
 func (pg *PostgresDatabase) GetAll(ctx context.Context) ([]person.Person, error) {

@@ -19,6 +19,7 @@ type Store interface {
 	GetById(ctx context.Context, id int) (Person, error)
 	GetAll(ctx context.Context) ([]Person, error)
 	Create(ctx context.Context, person Person) (int, error)
+	GetByEmail(ctx context.Context, email string) (Person, error)
 }
 
 // Service - will handle all logic related to Person types
@@ -32,6 +33,14 @@ func NewService(store Store) Service {
 
 func (s *Service) GetPerson(ctx context.Context, id int) (Person, error) {
 	p, err := s.store.GetById(ctx, id)
+	if err != nil {
+		return Person{}, err
+	}
+	return p, nil
+}
+
+func (s *Service) GetPersonByEmail(ctx context.Context, email string) (Person, error) {
+	p, err := s.store.GetByEmail(ctx, email)
 	if err != nil {
 		return Person{}, err
 	}

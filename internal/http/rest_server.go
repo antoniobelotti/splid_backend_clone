@@ -29,6 +29,7 @@ func NewRESTServer(ps person.Service, gs group.Service) RESTServer {
 	{
 		personEndpoints.POST("", personHandlers.handleCreatePerson)
 		personEndpoints.GET("/:personId", personHandlers.handleGetPerson)
+		personEndpoints.POST("/login", personHandlers.handleLogin)
 	}
 
 	return RESTServer{

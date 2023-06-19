@@ -241,7 +241,7 @@ func (suite *PersonHandlerTestSuite) TestGetPerson() {
 	w := httptest.NewRecorder()
 
 	suite.server.ServeHTTP(w, req)
-	fmt.Println(w.Body)
+
 	suite.Equal(http.StatusOK, w.Code)
 
 	want := person.Person{
@@ -256,4 +256,59 @@ func (suite *PersonHandlerTestSuite) TestGetPerson() {
 	suite.Require().NoError(err)
 	suite.Equal(want, got)
 
+}
+
+func (suite *PersonHandlerTestSuite) TestPersonLoginSuccess() {
+	p, err := suite.personService.CreatePerson(
+		context.Background(),
+		"person_to_retrieve",
+		"email@mail.com",
+		"password123",
+	)
+	suite.Require().NoError(err)
+
+	rb := LoginRequestBody{
+		Email:    p.Email,
+		Password: "password123",
+	}
+	jsonBody, err := json.Marshal(rb)
+	suite.Require().NoError(err)
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/person/login", bytes.NewBuffer(jsonBody))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+
+	suite.server.ServeHTTP(w, req)
+
+	suite.Equal(http.StatusOK, w.Code)
+
+	var got LoginResponseBody
+	err = json.Unmarshal(w.Body.Bytes(), &got)
+	suite.Require().NoError(err)
+	suite.NotEmpty(got.SignedToken)
+}
+
+func (suite *PersonHandlerTestSuite) TestPersonLoginFail() {
+	p, err := suite.personService.CreatePerson(
+		context.Background(),
+		"person_to_retrieve",
+		"email@mail.com",
+		"password123",
+	)
+	suite.Require().NoError(err)
+
+	rb := LoginRequestBody{
+		Email:    p.Email,
+		Password: "WrongPassword",
+	}
+	jsonBody, err := json.Marshal(rb)
+	suite.Require().NoError(err)
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/person/login", bytes.NewBuffer(jsonBody))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+
+	suite.server.ServeHTTP(w, req)
+
+	suite.Equal(http.StatusUnauthorized, w.Code)
 }
