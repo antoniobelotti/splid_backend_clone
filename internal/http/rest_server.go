@@ -28,9 +28,9 @@ func NewRESTServer(ps person.Service, gs group.Service) RESTServer {
 	personHandlers := NewPersonHandlers(ps)
 	personEndpoints := v1.Group("/person")
 	{
-		personEndpoints.POST("", personHandlers.handleCreatePerson)
-		personEndpoints.GET("", authentication.AuthenticateMiddleware(), personHandlers.handleGetPerson)
+		personEndpoints.POST("/signup", personHandlers.handleCreatePerson)
 		personEndpoints.POST("/login", personHandlers.handleLogin)
+		personEndpoints.GET("", authentication.AuthenticateMiddleware(), personHandlers.handleGetPerson)
 	}
 
 	return RESTServer{

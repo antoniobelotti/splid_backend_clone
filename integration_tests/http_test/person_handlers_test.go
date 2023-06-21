@@ -159,7 +159,7 @@ func (suite *PersonHandlerTestSuite) TestCreatePersonChecksValidation() {
 
 	for _, testCase := range table {
 		jsonBody, _ := json.Marshal(testCase.requestBody)
-		req := httptest.NewRequest(http.MethodPost, "/api/v1/person", bytes.NewBuffer(jsonBody))
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/person/signup", bytes.NewBuffer(jsonBody))
 		req.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()
 
@@ -205,7 +205,7 @@ func (suite *PersonHandlerTestSuite) TestCreatePerson() {
 
 	for _, testCase := range table {
 		jsonBody, _ := json.Marshal(testCase.requestBody)
-		req := httptest.NewRequest(http.MethodPost, "/api/v1/person", bytes.NewBuffer(jsonBody))
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/person/signup", bytes.NewBuffer(jsonBody))
 		req.Header.Set("Content-Type", "application/json")
 
 		w := httptest.NewRecorder()
