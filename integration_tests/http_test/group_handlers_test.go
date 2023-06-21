@@ -1,13 +1,9 @@
 //go:build integration
-// +build integration
 
-package http
+package http_test
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
-	"fmt"
 	"github.com/antoniobelotti/splid_backend_clone/integration_tests"
 	"github.com/antoniobelotti/splid_backend_clone/internal/group"
 	internal_http "github.com/antoniobelotti/splid_backend_clone/internal/http"
@@ -15,14 +11,12 @@ import (
 	"github.com/stretchr/testify/suite"
 	psqlcont "github.com/testcontainers/testcontainers-go/modules/postgres"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 )
 
 type GroupHandlerTestSuite struct {
-	suite.Suite
+	testSuiteHttp
 	psqlContainer *psqlcont.PostgresContainer
-	server        internal_http.RESTServer
 	personService person.Service
 	groupService  group.Service
 }
@@ -54,36 +48,23 @@ func (suite *GroupHandlerTestSuite) TestCreateGroupSuccess() {
 		Email:    p.Email,
 		Password: "password123",
 	}
-	jsonBody, _ := json.Marshal(requestBody)
-	req := httptest.NewRequest(http.MethodPost, "/api/v1/person/login", bytes.NewBuffer(jsonBody))
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-	suite.server.ServeHTTP(w, req)
-	suite.Equal(http.StatusOK, w.Code, "login failed")
 
-	var loginResp internal_http.LoginResponseBody
-	err = json.Unmarshal(w.Body.Bytes(), &loginResp)
-	suite.Require().NoError(err)
+	response := suite.POST("/api/v1/person/login", requestBody)
+
+	suite.Equal(http.StatusOK, response.Code, "login failed")
+
+	loginResp := ExtractBody[internal_http.LoginResponseBody](response)
 
 	// create group request
 	want := group.Group{
 		Name:    "testGroup",
 		OwnerId: p.Id,
 	}
-
 	createGroupRequestBody := internal_http.CreateGroupRequestBody{Name: want.Name}
-	jsonBody, _ = json.Marshal(createGroupRequestBody)
-	req = httptest.NewRequest(http.MethodPost, "/api/v1/group", bytes.NewBuffer(jsonBody))
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", loginResp.SignedToken))
+	response = suite.POSTWithJwt("/api/v1/group", createGroupRequestBody, loginResp.SignedToken)
+	suite.Equal(http.StatusCreated, response.Code)
 
-	w = httptest.NewRecorder()
-	suite.server.ServeHTTP(w, req)
-	suite.Equal(http.StatusCreated, w.Code)
-
-	var got group.Group
-	err = json.Unmarshal(w.Body.Bytes(), &got)
-	suite.Require().NoError(err)
+	got := ExtractBody[group.Group](response)
 
 	// Id is set by api
 	want.Id = got.Id
