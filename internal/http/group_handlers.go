@@ -20,11 +20,6 @@ type CreateGroupRequestBody struct {
 	Name string `json:"name" binding:"required"`
 }
 
-type CreateGroupResponseBody struct {
-	GroupName      string `json:"group-name"`
-	InvitationCode string `json:"invitation-code"`
-}
-
 func (h *GroupHandlers) handleCreateGroup(ctx *gin.Context) {
 	requestBody := CreateGroupRequestBody{}
 
@@ -33,16 +28,13 @@ func (h *GroupHandlers) handleCreateGroup(ctx *gin.Context) {
 		return
 	}
 
-	ownerId := 0 // todo: pull id of loggedId person from context
-	g, err := h.service.CreateGroup(ctx, requestBody.Name, ownerId)
+	ownerIdStr := ctx.GetInt("PersonId")
+	g, err := h.service.CreateGroup(ctx, requestBody.Name, ownerIdStr)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "cannot create grup"})
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "cannot create group"})
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, CreateGroupResponseBody{
-		GroupName:      g.Name,
-		InvitationCode: g.InvitationCode,
-	})
+	ctx.JSON(http.StatusCreated, g)
 	return
 }

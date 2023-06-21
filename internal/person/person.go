@@ -22,7 +22,7 @@ type Store interface {
 }
 
 var (
-	ErrPersonNotFound = errors.New("person_test does not exist")
+	ErrPersonNotFound = errors.New("person does not exist")
 	ErrUnexpected     = errors.New("unexpected error")
 )
 

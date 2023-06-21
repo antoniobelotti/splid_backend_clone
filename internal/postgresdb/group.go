@@ -2,7 +2,6 @@ package postgresdb
 
 import (
 	"context"
-	"fmt"
 	"github.com/antoniobelotti/splid_backend_clone/internal/group"
 )
 
@@ -11,28 +10,25 @@ func (pg *PostgresDatabase) CreateGroup(ctx context.Context, g group.Group) erro
 	if err != nil {
 		return err
 	}
-	fmt.Println("test")
-	_, err = transaction.NamedExecContext(
+
+	if _, err = transaction.ExecContext(
 		ctx,
 		`	INSERT INTO "group"(name, owner_id, balance, invitation_code) 
-				VALUES (:name, :ownerId, :balance, :invitationCode);`,
-		g,
-	)
+				VALUES ($1, $2, $3, $4);`,
+		g.Name, g.OwnerId, g.Balance, g.InvitationCode,
+	); err != nil {
+		return transaction.Rollback()
+	}
 
-	_, err = transaction.ExecContext(
+	if _, err = transaction.ExecContext(
 		ctx,
 		`	INSERT INTO group_person(person_id, group_id) 
-				VALUES ( ? , ? );`,
+				VALUES ($1, $2);`,
 		g.OwnerId,
 		g.Id,
-	)
-	if err != nil {
-		return err
+	); err != nil {
+		return transaction.Rollback()
 	}
 
-	err = transaction.Commit()
-	if err != nil {
-		return err
-	}
-	return nil
+	return transaction.Commit()
 }

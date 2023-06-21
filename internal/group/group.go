@@ -2,6 +2,7 @@ package group
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"hash/fnv"
 	"strconv"
@@ -28,6 +29,11 @@ func NewService(store Store) Service {
 	return Service{store: store}
 }
 
+var (
+	//ErrGroupNotFound = errors.New("person_test does not exist")
+	ErrUnexpected = errors.New("unexpected error")
+)
+
 func getHopefullyUniqueInvitationCode(groupName string, ownerId int) (string, error) {
 	h := fnv.New32a()
 	_, err := h.Write([]byte(fmt.Sprintf("%s%d", groupName, ownerId)))
@@ -41,7 +47,7 @@ func getHopefullyUniqueInvitationCode(groupName string, ownerId int) (string, er
 func (s *Service) CreateGroup(ctx context.Context, name string, ownerId int) (Group, error) {
 	invitationCode, err := getHopefullyUniqueInvitationCode(name, ownerId)
 	if err != nil {
-		return Group{}, err
+		return Group{}, ErrUnexpected
 	}
 
 	var g = Group{
@@ -54,7 +60,7 @@ func (s *Service) CreateGroup(ctx context.Context, name string, ownerId int) (Gr
 
 	err = s.store.CreateGroup(ctx, g)
 	if err != nil {
-		return Group{}, err
+		return Group{}, ErrUnexpected
 	}
 	return g, nil
 }
