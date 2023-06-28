@@ -16,9 +16,9 @@ type Person struct {
 
 // Store - this interface defines all methods the service needs to work
 type Store interface {
-	GetById(ctx context.Context, id int) (Person, error)
-	Create(ctx context.Context, person Person) (int, error)
-	GetByEmail(ctx context.Context, email string) (Person, error)
+	GetPersonById(ctx context.Context, id int) (Person, error)
+	CreatePerson(ctx context.Context, person Person) (int, error)
+	GetPersonByEmail(ctx context.Context, email string) (Person, error)
 }
 
 var (
@@ -36,11 +36,11 @@ func NewService(store Store) Service {
 }
 
 func (s *Service) GetPersonById(ctx context.Context, id int) (Person, error) {
-	return s.store.GetById(ctx, id)
+	return s.store.GetPersonById(ctx, id)
 }
 
 func (s *Service) GetPersonByEmail(ctx context.Context, email string) (Person, error) {
-	return s.store.GetByEmail(ctx, email)
+	return s.store.GetPersonByEmail(ctx, email)
 }
 
 func (s *Service) CreatePerson(ctx context.Context, name string, email string, clearPassword string) (Person, error) {
@@ -55,7 +55,7 @@ func (s *Service) CreatePerson(ctx context.Context, name string, email string, c
 		Password: string(hashedPassword),
 	}
 
-	id, err := s.store.Create(ctx, p)
+	id, err := s.store.CreatePerson(ctx, p)
 	if err != nil {
 		return Person{}, err
 	}

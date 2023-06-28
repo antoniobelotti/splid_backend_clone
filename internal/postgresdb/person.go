@@ -6,7 +6,7 @@ import (
 	"github.com/antoniobelotti/splid_backend_clone/internal/person"
 )
 
-func (pg *PostgresDatabase) GetById(ctx context.Context, personId int) (person.Person, error) {
+func (pg *PostgresDatabase) GetPersonById(ctx context.Context, personId int) (person.Person, error) {
 	var p person.Person
 	err := pg.GetContext(ctx, &p, `SELECT * FROM person WHERE id=$1`, personId)
 	if err != nil {
@@ -20,7 +20,7 @@ func (pg *PostgresDatabase) GetById(ctx context.Context, personId int) (person.P
 	return p, err
 }
 
-func (pg *PostgresDatabase) GetByEmail(ctx context.Context, email string) (person.Person, error) {
+func (pg *PostgresDatabase) GetPersonByEmail(ctx context.Context, email string) (person.Person, error) {
 	var p person.Person
 	err := pg.GetContext(ctx, &p, `SELECT * FROM person WHERE email=$1`, email)
 	if err != nil {
@@ -34,7 +34,7 @@ func (pg *PostgresDatabase) GetByEmail(ctx context.Context, email string) (perso
 	return p, err
 }
 
-func (pg *PostgresDatabase) Create(ctx context.Context, p person.Person) (int, error) {
+func (pg *PostgresDatabase) CreatePerson(ctx context.Context, p person.Person) (int, error) {
 	res, err := pg.ExecContext(
 		ctx,
 		`INSERT INTO person(name, email, password) VALUES ($1, $2, $3)  RETURNING id`,
