@@ -105,7 +105,7 @@ func (suite *GroupHandlerTestSuite) TestJoinGroupSuccess() {
 	suite.Require().Contains(components, p.Id)
 }
 
-func (suite *GroupHandlerTestSuite) TestJoinGroupFail() {
+func (suite *GroupHandlerTestSuite) TestJoinGroupFailGivenWrongInvitationCode() {
 	groupOwner, err := suite.personService.CreatePerson(context.Background(), "testPerson", "mail@email.com", "password123")
 	suite.Require().NoError(err)
 	g, err := suite.groupService.CreateGroup(context.Background(), "testGroup", groupOwner.Id)
@@ -114,7 +114,6 @@ func (suite *GroupHandlerTestSuite) TestJoinGroupFail() {
 	p, err := suite.personService.CreatePerson(context.Background(), "testPerson num2", "mail2@email.com", "password123")
 	suite.Require().NoError(err)
 
-	fmt.Printf("ownerid %d invitedId %d", groupOwner.Id, p.Id)
 	rb := internal_http.LoginRequestBody{
 		Email:    p.Email,
 		Password: "password123",
@@ -134,4 +133,33 @@ func (suite *GroupHandlerTestSuite) TestJoinGroupFail() {
 
 	components, err := suite.groupService.GetGroupComponentsById(context.Background(), g.Id)
 	suite.Require().NotContains(components, p.Id)
+}
+
+func (suite *GroupHandlerTestSuite) TestJoinGroupFailIfGroupDoesNotExist() {
+	groupOwner, err := suite.personService.CreatePerson(context.Background(), "testPerson", "mail@email.com", "password123")
+	suite.Require().NoError(err)
+	g, err := suite.groupService.CreateGroup(context.Background(), "testGroup", groupOwner.Id)
+	suite.Require().NoError(err)
+
+	p, err := suite.personService.CreatePerson(context.Background(), "testPerson num2", "mail2@email.com", "password123")
+	suite.Require().NoError(err)
+
+	rb := internal_http.LoginRequestBody{
+		Email:    p.Email,
+		Password: "password123",
+	}
+	response := suite.POST("/api/v1/person/login", rb)
+	suite.Equal(http.StatusOK, response.Code)
+	loginResponseBody := ExtractBody[internal_http.LoginResponseBody](response)
+	suite.NotEmpty(loginResponseBody.SignedToken)
+
+	inexistentGroupId := 999
+	// perform request to join group g as user p
+	joinGroupResponse := suite.POSTWithJwt(
+		fmt.Sprintf("/api/v1/group/%d/join?invitationCode=%s", inexistentGroupId, g.InvitationCode),
+		nil,
+		loginResponseBody.SignedToken,
+	)
+	suite.Equal(http.StatusBadRequest, joinGroupResponse.Code)
+
 }

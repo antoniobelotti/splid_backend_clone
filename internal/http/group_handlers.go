@@ -1,6 +1,7 @@
 package http
 
 import (
+	"errors"
 	"github.com/antoniobelotti/splid_backend_clone/internal/group"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -52,7 +53,12 @@ func (h *GroupHandlers) handleJoinGroup(ctx *gin.Context) {
 
 	g, err := h.service.GetGroupById(ctx, groupId)
 	if err != nil {
-		//TODO
+		if errors.Is(err, group.ErrGroupNotFound) {
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "the group you are trying to join does not exist"})
+			return
+		}
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		return
 	}
 
 	// request has wrong invitation code
@@ -63,7 +69,6 @@ func (h *GroupHandlers) handleJoinGroup(ctx *gin.Context) {
 
 	err = h.service.AddPersonToGroup(ctx, g, personId)
 	if err != nil {
-		//TODO
 		return
 	}
 

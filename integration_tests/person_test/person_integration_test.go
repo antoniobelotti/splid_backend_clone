@@ -4,6 +4,7 @@ package person_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/antoniobelotti/splid_backend_clone/integration_tests"
 	"github.com/antoniobelotti/splid_backend_clone/internal/person"
@@ -35,7 +36,7 @@ func TestPersonTestSuite(t *testing.T) {
 func (suite *PersonTestSuite) TestGetPersonByEmailFails() {
 	p, err := suite.personService.GetPersonByEmail(context.Background(), "nonExistentEmail")
 
-	suite.Equal(person.ErrPersonNotFound, err)
+	suite.True(errors.Is(err, person.ErrPersonNotFound))
 	suite.Equal(person.Person{}, p)
 }
 

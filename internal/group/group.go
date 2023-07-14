@@ -34,8 +34,8 @@ func NewService(store Store) Service {
 }
 
 var (
-	//ErrGroupNotFound = errors.New("person_test does not exist")
-	ErrUnexpected = errors.New("unexpected error")
+	ErrGroupNotFound = errors.New("group not found")
+	ErrUnexpected    = errors.New("unexpected error")
 )
 
 func getHopefullyUniqueInvitationCode(groupName string, ownerId int) (string, error) {
@@ -70,25 +70,13 @@ func (s *Service) CreateGroup(ctx context.Context, name string, ownerId int) (Gr
 }
 
 func (s *Service) GetGroupById(ctx context.Context, groupId int) (Group, error) {
-	g, err := s.store.GetGroupById(ctx, groupId)
-	if err != nil {
-		//TODO
-	}
-	return g, nil
+	return s.store.GetGroupById(ctx, groupId)
 }
 
 func (s *Service) AddPersonToGroup(ctx *gin.Context, g Group, personId int) error {
-	err := s.store.AddPersonToGroup(ctx, g, personId)
-	if err != nil {
-		//TODO
-	}
-	return nil
+	return s.store.AddPersonToGroup(ctx, g, personId)
 }
 
 func (s *Service) GetGroupComponentsById(ctx context.Context, groupId int) ([]int, error) {
-	components, err := s.store.GetGroupComponentsById(ctx, groupId)
-	if err != nil {
-		// TODO
-	}
-	return components, nil
+	return s.store.GetGroupComponentsById(ctx, groupId)
 }
