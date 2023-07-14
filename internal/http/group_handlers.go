@@ -4,6 +4,7 @@ import (
 	"github.com/antoniobelotti/splid_backend_clone/internal/group"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 )
 
 type GroupHandlers struct {
@@ -36,5 +37,36 @@ func (h *GroupHandlers) handleCreateGroup(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, g)
+	return
+}
+
+func (h *GroupHandlers) handleJoinGroup(ctx *gin.Context) {
+	personId := ctx.GetInt("PersonId")
+
+	groupId, err := strconv.Atoi(ctx.Param("groupId"))
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "malformed group id"})
+		return
+	}
+	requestInvitationCode := ctx.Query("invitationCode")
+
+	g, err := h.service.GetGroupById(ctx, groupId)
+	if err != nil {
+		//TODO
+	}
+
+	// request has wrong invitation code
+	if g.InvitationCode != requestInvitationCode {
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	err = h.service.AddPersonToGroup(ctx, g, personId)
+	if err != nil {
+		//TODO
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "successfully joined group"})
 	return
 }

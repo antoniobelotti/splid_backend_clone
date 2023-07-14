@@ -23,6 +23,7 @@ func NewRESTServer(ps person.Service, gs group.Service) RESTServer {
 	groupEndpoints := v1.Group("/group")
 	{
 		groupEndpoints.POST("", authentication.AuthenticateMiddleware(), groupHandlers.handleCreateGroup)
+		groupEndpoints.POST("/:groupId/join", authentication.AuthenticateMiddleware(), groupHandlers.handleJoinGroup)
 	}
 
 	personHandlers := NewPersonHandlers(ps)

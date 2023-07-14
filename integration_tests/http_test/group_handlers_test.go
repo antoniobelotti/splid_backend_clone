@@ -4,6 +4,7 @@ package http_test
 
 import (
 	"context"
+	"fmt"
 	"github.com/antoniobelotti/splid_backend_clone/integration_tests"
 	"github.com/antoniobelotti/splid_backend_clone/internal/group"
 	internal_http "github.com/antoniobelotti/splid_backend_clone/internal/http"
@@ -72,4 +73,65 @@ func (suite *GroupHandlerTestSuite) TestCreateGroupSuccess() {
 	suite.Equal(want.Name, got.Name)
 	suite.Equal(want.OwnerId, got.OwnerId)
 	suite.NotEmpty(got.InvitationCode)
+}
+
+func (suite *GroupHandlerTestSuite) TestJoinGroupSuccess() {
+	groupOwner, err := suite.personService.CreatePerson(context.Background(), "testPerson", "mail@email.com", "password123")
+	suite.Require().NoError(err)
+	g, err := suite.groupService.CreateGroup(context.Background(), "testGroup", groupOwner.Id)
+	suite.Require().NoError(err)
+
+	p, err := suite.personService.CreatePerson(context.Background(), "testPerson num2", "mail2@email.com", "password123")
+	suite.Require().NoError(err)
+
+	rb := internal_http.LoginRequestBody{
+		Email:    p.Email,
+		Password: "password123",
+	}
+	response := suite.POST("/api/v1/person/login", rb)
+	suite.Equal(http.StatusOK, response.Code)
+	loginResponseBody := ExtractBody[internal_http.LoginResponseBody](response)
+	suite.NotEmpty(loginResponseBody.SignedToken)
+
+	// perform request to join group g as user p
+	joinGroupResponse := suite.POSTWithJwt(
+		fmt.Sprintf("/api/v1/group/%d/join?invitationCode=%s", g.Id, g.InvitationCode),
+		nil,
+		loginResponseBody.SignedToken,
+	)
+	suite.Equal(http.StatusOK, joinGroupResponse.Code)
+
+	components, err := suite.groupService.GetGroupComponentsById(context.Background(), g.Id)
+	suite.Require().Contains(components, p.Id)
+}
+
+func (suite *GroupHandlerTestSuite) TestJoinGroupFail() {
+	groupOwner, err := suite.personService.CreatePerson(context.Background(), "testPerson", "mail@email.com", "password123")
+	suite.Require().NoError(err)
+	g, err := suite.groupService.CreateGroup(context.Background(), "testGroup", groupOwner.Id)
+	suite.Require().NoError(err)
+
+	p, err := suite.personService.CreatePerson(context.Background(), "testPerson num2", "mail2@email.com", "password123")
+	suite.Require().NoError(err)
+
+	fmt.Printf("ownerid %d invitedId %d", groupOwner.Id, p.Id)
+	rb := internal_http.LoginRequestBody{
+		Email:    p.Email,
+		Password: "password123",
+	}
+	response := suite.POST("/api/v1/person/login", rb)
+	suite.Equal(http.StatusOK, response.Code)
+	loginResponseBody := ExtractBody[internal_http.LoginResponseBody](response)
+	suite.NotEmpty(loginResponseBody.SignedToken)
+
+	// perform request to join group g as user p
+	joinGroupResponse := suite.POSTWithJwt(
+		fmt.Sprintf("/api/v1/group/%d/join?invitationCode=%s", g.Id, "INVALID_INVITATION_CODE"),
+		nil,
+		loginResponseBody.SignedToken,
+	)
+	suite.Equal(http.StatusUnauthorized, joinGroupResponse.Code)
+
+	components, err := suite.groupService.GetGroupComponentsById(context.Background(), g.Id)
+	suite.Require().NotContains(components, p.Id)
 }

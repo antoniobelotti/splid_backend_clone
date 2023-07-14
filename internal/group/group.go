@@ -4,21 +4,25 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"hash/fnv"
 	"strconv"
 )
 
 type Group struct {
-	Id             int     `json:"id"`
-	Name           string  `json:"name"`
-	OwnerId        int     `json:"owner-id"`
+	Id             int     `json:"id" db:"id"`
+	Name           string  `json:"name" db:"name"`
+	OwnerId        int     `json:"owner-id" db:"owner_id"`
 	ComponentIds   []int   `json:"components"`
-	Balance        float64 `json:"balance"`
-	InvitationCode string  `json:"invitation-code"`
+	Balance        float64 `json:"balance" db:"balance"`
+	InvitationCode string  `json:"invitation-code" db:"invitation_code"`
 }
 
 type Store interface {
-	CreateGroup(ctx context.Context, group Group) error
+	CreateGroup(ctx context.Context, group Group) (int, error)
+	GetGroupById(ctx context.Context, groupId int) (Group, error)
+	AddPersonToGroup(ctx context.Context, g Group, personId int) error
+	GetGroupComponentsById(ctx context.Context, groupId int) ([]int, error)
 }
 
 type Service struct {
@@ -58,9 +62,33 @@ func (s *Service) CreateGroup(ctx context.Context, name string, ownerId int) (Gr
 		InvitationCode: invitationCode,
 	}
 
-	err = s.store.CreateGroup(ctx, g)
+	g.Id, err = s.store.CreateGroup(ctx, g)
 	if err != nil {
 		return Group{}, ErrUnexpected
 	}
 	return g, nil
+}
+
+func (s *Service) GetGroupById(ctx context.Context, groupId int) (Group, error) {
+	g, err := s.store.GetGroupById(ctx, groupId)
+	if err != nil {
+		//TODO
+	}
+	return g, nil
+}
+
+func (s *Service) AddPersonToGroup(ctx *gin.Context, g Group, personId int) error {
+	err := s.store.AddPersonToGroup(ctx, g, personId)
+	if err != nil {
+		//TODO
+	}
+	return nil
+}
+
+func (s *Service) GetGroupComponentsById(ctx context.Context, groupId int) ([]int, error) {
+	components, err := s.store.GetGroupComponentsById(ctx, groupId)
+	if err != nil {
+		// TODO
+	}
+	return components, nil
 }

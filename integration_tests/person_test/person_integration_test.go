@@ -4,6 +4,7 @@ package person_test
 
 import (
 	"context"
+	"fmt"
 	"github.com/antoniobelotti/splid_backend_clone/integration_tests"
 	"github.com/antoniobelotti/splid_backend_clone/internal/person"
 	"github.com/stretchr/testify/suite"
@@ -36,4 +37,15 @@ func (suite *PersonTestSuite) TestGetPersonByEmailFails() {
 
 	suite.Equal(person.ErrPersonNotFound, err)
 	suite.Equal(person.Person{}, p)
+}
+
+func (suite *PersonTestSuite) TestCreatePersonReturnsCorrectId() {
+	p, err := suite.personService.CreatePerson(context.Background(), "test person", "mail@gmail.com", "test123pwd")
+	fmt.Println(err)
+	suite.Require().NoError(err)
+	suite.Equal(1, p.Id)
+
+	p2, err := suite.personService.CreatePerson(context.Background(), "test person 2", "mail2@gmail.com", "test123pwd")
+	suite.Require().NoError(err)
+	suite.Equal(2, p2.Id)
 }
