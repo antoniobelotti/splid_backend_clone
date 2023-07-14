@@ -35,21 +35,16 @@ func (pg *PostgresDatabase) GetPersonByEmail(ctx context.Context, email string) 
 }
 
 func (pg *PostgresDatabase) CreatePerson(ctx context.Context, p person.Person) (int, error) {
-	res, err := pg.ExecContext(
+	var personId int
+	err := pg.QueryRowContext(
 		ctx,
 		`INSERT INTO person(name, email, password) VALUES ($1, $2, $3)  RETURNING id`,
 		p.Name, p.Email, p.Password,
-	)
+	).Scan(&personId)
 
 	if err != nil {
 		return 0, person.ErrUnexpected
 	}
 
-	// It's not rowsaffected but the `RETURNING id` from the query.
-	id, err := res.RowsAffected()
-	if err != nil {
-		return 0, person.ErrUnexpected
-	}
-
-	return int(id), nil
+	return personId, nil
 }
