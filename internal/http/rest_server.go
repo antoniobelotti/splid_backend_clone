@@ -1,6 +1,7 @@
 package http
 
 import (
+	"github.com/antoniobelotti/splid_backend_clone/internal/expense"
 	"github.com/antoniobelotti/splid_backend_clone/internal/group"
 	"github.com/antoniobelotti/splid_backend_clone/internal/http/authentication"
 	"github.com/antoniobelotti/splid_backend_clone/internal/person"
@@ -11,7 +12,7 @@ type RESTServer struct {
 	*gin.Engine
 }
 
-func NewRESTServer(ps person.Service, gs group.Service) RESTServer {
+func NewRESTServer(ps person.Service, gs group.Service, es expense.Service) RESTServer {
 	router := gin.New()
 
 	router.Use(gin.Logger())
@@ -32,6 +33,12 @@ func NewRESTServer(ps person.Service, gs group.Service) RESTServer {
 		personEndpoints.POST("/signup", personHandlers.handleCreatePerson)
 		personEndpoints.POST("/login", personHandlers.handleLogin)
 		personEndpoints.GET("", authentication.AuthenticateMiddleware(), personHandlers.handleGetPerson)
+	}
+
+	expenseHandlers := NewExpenseHandlers(es)
+	expenseEndpoints := v1.Group("/expense")
+	{
+		expenseEndpoints.POST("", authentication.AuthenticateMiddleware(), expenseHandlers.handleCreateExpense)
 	}
 
 	return RESTServer{

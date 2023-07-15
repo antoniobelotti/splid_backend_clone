@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/antoniobelotti/splid_backend_clone/integration_tests"
+	"github.com/antoniobelotti/splid_backend_clone/internal/expense"
 	"github.com/antoniobelotti/splid_backend_clone/internal/group"
 	internal_http "github.com/antoniobelotti/splid_backend_clone/internal/http"
 	"github.com/antoniobelotti/splid_backend_clone/internal/person"
@@ -37,7 +38,7 @@ func (suite *GroupHandlerTestSuite) SetupTest() {
 	suite.personService = person.NewService(db)
 	suite.groupService = group.NewService(db)
 
-	suite.server = internal_http.NewRESTServer(suite.personService, suite.groupService)
+	suite.server = internal_http.NewRESTServer(suite.personService, suite.groupService, expense.Service{})
 }
 
 func (suite *GroupHandlerTestSuite) TestCreateGroupSuccess() {
