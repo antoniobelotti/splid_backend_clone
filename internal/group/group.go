@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"hash/fnv"
 	"strconv"
 )
@@ -73,7 +72,7 @@ func (s *Service) GetGroupById(ctx context.Context, groupId int) (Group, error) 
 	return s.store.GetGroupById(ctx, groupId)
 }
 
-func (s *Service) AddPersonToGroup(ctx *gin.Context, g Group, personId int) error {
+func (s *Service) AddPersonToGroup(ctx context.Context, g Group, personId int) error {
 	return s.store.AddPersonToGroup(ctx, g, personId)
 }
 

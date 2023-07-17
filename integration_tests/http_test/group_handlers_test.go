@@ -10,6 +10,7 @@ import (
 	"github.com/antoniobelotti/splid_backend_clone/internal/group"
 	internal_http "github.com/antoniobelotti/splid_backend_clone/internal/http"
 	"github.com/antoniobelotti/splid_backend_clone/internal/person"
+	"github.com/antoniobelotti/splid_backend_clone/internal/transfer"
 	"github.com/stretchr/testify/suite"
 	psqlcont "github.com/testcontainers/testcontainers-go/modules/postgres"
 	"net/http"
@@ -38,7 +39,7 @@ func (suite *GroupHandlerTestSuite) SetupTest() {
 	suite.personService = person.NewService(db)
 	suite.groupService = group.NewService(db)
 
-	suite.server = internal_http.NewRESTServer(suite.personService, suite.groupService, expense.Service{})
+	suite.server = internal_http.NewRESTServer(suite.personService, suite.groupService, expense.Service{}, transfer.Service{})
 }
 
 func (suite *GroupHandlerTestSuite) TestCreateGroupSuccess() {

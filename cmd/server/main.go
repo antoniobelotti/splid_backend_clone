@@ -7,6 +7,7 @@ import (
 	"github.com/antoniobelotti/splid_backend_clone/internal/http"
 	"github.com/antoniobelotti/splid_backend_clone/internal/person"
 	"github.com/antoniobelotti/splid_backend_clone/internal/postgresdb"
+	"github.com/antoniobelotti/splid_backend_clone/internal/transfer"
 	"os"
 )
 
@@ -20,8 +21,9 @@ func Run() error {
 	ps := person.NewService(db)
 	gs := group.NewService(db)
 	es := expense.NewService(db)
+	ts := transfer.NewService(db)
 
-	restServer := http.NewRESTServer(ps, gs, es)
+	restServer := http.NewRESTServer(ps, gs, es, ts)
 	err = restServer.Run(":" + os.Getenv("HTTP_PORT"))
 	if err != nil {
 		return err
