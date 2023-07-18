@@ -68,3 +68,40 @@ func (suite *GroupTestSuite) TestCreateExpenseFail() {
 	suite.Require().NotNil(err)
 	suite.Require().Empty(e)
 }
+
+func (suite *GroupTestSuite) TestCreateTransferSuccess() {
+	sender, err := suite.personService.CreatePerson(context.Background(), "person", "email@email.com", "testtest123")
+	suite.Require().NoError(err)
+
+	receiver, err := suite.personService.CreatePerson(context.Background(), "person", "sknvnkvsjnvd@email.com", "testtest123")
+	suite.Require().NoError(err)
+
+	g, err := suite.groupService.CreateGroup(context.Background(), "testgroup", sender.Id)
+	suite.Require().NoError(err)
+
+	err = suite.groupService.AddPersonToGroup(context.Background(), g, receiver.Id)
+	suite.Require().NoError(err)
+
+	e, err := suite.groupService.CreateTransfer(context.Background(), 42, g.Id, sender.Id, receiver.Id)
+	suite.Require().NoError(err)
+
+	suite.Assert().Equal(42, e.AmountInCents)
+	suite.Assert().Equal(sender.Id, e.SenderId)
+	suite.Assert().Equal(receiver.Id, e.ReceiverId)
+	suite.Assert().Equal(g.Id, e.GroupId)
+}
+
+func (suite *GroupTestSuite) TestCreateTransferFail() {
+	p, err := suite.personService.CreatePerson(context.Background(), "person", "email@email.com", "testtest123")
+	suite.Require().NoError(err)
+
+	g, err := suite.groupService.CreateGroup(context.Background(), "testgroup", p.Id)
+	suite.Require().NoError(err)
+
+	notInGroupPerson, err := suite.personService.CreatePerson(context.Background(), "person 2", "email2@email.com", "testtest123")
+	suite.Require().NoError(err)
+
+	e, err := suite.groupService.CreateTransfer(context.Background(), 42, g.Id, p.Id, notInGroupPerson.Id)
+	suite.Require().NotNil(err)
+	suite.Require().Empty(e)
+}
