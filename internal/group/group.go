@@ -9,12 +9,11 @@ import (
 )
 
 type Group struct {
-	Id             int     `json:"id" db:"id"`
-	Name           string  `json:"name" db:"name"`
-	OwnerId        int     `json:"owner-id" db:"owner_id"`
-	ComponentIds   []int   `json:"components"`
-	Balance        float64 `json:"balance" db:"balance"`
-	InvitationCode string  `json:"invitation-code" db:"invitation_code"`
+	Id             int    `json:"id" db:"id"`
+	Name           string `json:"name" db:"name"`
+	OwnerId        int    `json:"owner-id" db:"owner_id"`
+	ComponentIds   []int  `json:"components"`
+	InvitationCode string `json:"invitation-code" db:"invitation_code"`
 }
 
 type Expense struct {
@@ -80,7 +79,6 @@ func (s *Service) CreateGroup(ctx context.Context, name string, ownerId int) (Gr
 		Name:           name,
 		OwnerId:        ownerId,
 		ComponentIds:   nil,
-		Balance:        0,
 		InvitationCode: invitationCode,
 	}
 

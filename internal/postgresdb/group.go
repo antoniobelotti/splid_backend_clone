@@ -17,10 +17,10 @@ func (pg *PostgresDatabase) CreateGroup(ctx context.Context, g group.Group) (int
 	var groupId int
 	err = transaction.QueryRowContext(
 		ctx,
-		`	INSERT INTO "group"(name, owner_id, balance, invitation_code) 
-				VALUES ($1, $2, $3, $4)
+		`	INSERT INTO "group"(name, owner_id, invitation_code) 
+				VALUES ($1, $2, $3)
 				RETURNING id;`,
-		g.Name, g.OwnerId, g.Balance, g.InvitationCode,
+		g.Name, g.OwnerId, g.InvitationCode,
 	).Scan(&groupId)
 
 	if err != nil {
