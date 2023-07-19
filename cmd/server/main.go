@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/antoniobelotti/splid_backend_clone/internal/expense"
 	"github.com/antoniobelotti/splid_backend_clone/internal/group"
 	"github.com/antoniobelotti/splid_backend_clone/internal/http"
 	"github.com/antoniobelotti/splid_backend_clone/internal/person"
@@ -19,9 +20,10 @@ func Run() error {
 
 	ps := person.NewService(db)
 	gs := group.NewService(db)
+	es := expense.NewService(db)
 	ts := transfer.NewService(db)
 
-	restServer := http.NewRESTServer(ps, gs, ts)
+	restServer := http.NewRESTServer(ps, gs, es, ts)
 	err = restServer.Run(":" + os.Getenv("HTTP_PORT"))
 	if err != nil {
 		return err

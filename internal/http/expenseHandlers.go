@@ -1,17 +1,17 @@
 package http
 
 import (
-	"github.com/antoniobelotti/splid_backend_clone/internal/group"
+	"github.com/antoniobelotti/splid_backend_clone/internal/expense"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
 type ExpenseHandlers struct {
-	service group.Service
+	service expense.Service
 }
 
-func NewExpenseHandlers(gs group.Service) ExpenseHandlers {
-	return ExpenseHandlers{service: gs}
+func NewExpenseHandlers(es expense.Service) ExpenseHandlers {
+	return ExpenseHandlers{service: es}
 }
 
 type CreateExpenseRequestBody struct {
