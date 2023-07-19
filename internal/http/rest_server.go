@@ -4,6 +4,7 @@ import (
 	"github.com/antoniobelotti/splid_backend_clone/internal/group"
 	"github.com/antoniobelotti/splid_backend_clone/internal/http/authentication"
 	"github.com/antoniobelotti/splid_backend_clone/internal/person"
+	"github.com/antoniobelotti/splid_backend_clone/internal/transfer"
 	"github.com/gin-gonic/gin"
 )
 
@@ -11,7 +12,7 @@ type RESTServer struct {
 	*gin.Engine
 }
 
-func NewRESTServer(ps person.Service, gs group.Service) RESTServer {
+func NewRESTServer(ps person.Service, gs group.Service, ts transfer.Service) RESTServer {
 	router := gin.New()
 
 	router.Use(gin.Logger())
@@ -40,7 +41,7 @@ func NewRESTServer(ps person.Service, gs group.Service) RESTServer {
 		expenseEndpoints.POST("", authentication.AuthenticateMiddleware(), expenseHandlers.handleCreateExpense)
 	}
 
-	transferHandlers := NewTransferHandlers(gs)
+	transferHandlers := NewTransferHandlers(ts)
 	transferEndpoints := v1.Group("/transfer")
 	{
 		transferEndpoints.POST("", authentication.AuthenticateMiddleware(), transferHandlers.handleCreateTransfer)

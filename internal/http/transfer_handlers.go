@@ -1,17 +1,17 @@
 package http
 
 import (
-	"github.com/antoniobelotti/splid_backend_clone/internal/group"
+	"github.com/antoniobelotti/splid_backend_clone/internal/transfer"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
 type TransferHandlers struct {
-	service group.Service
+	service transfer.Service
 }
 
-func NewTransferHandlers(gs group.Service) TransferHandlers {
-	return TransferHandlers{service: gs}
+func NewTransferHandlers(ts transfer.Service) TransferHandlers {
+	return TransferHandlers{service: ts}
 }
 
 type CreateTransferRequestBody struct {

@@ -8,6 +8,7 @@ import (
 	"github.com/antoniobelotti/splid_backend_clone/internal/group"
 	internalHttp "github.com/antoniobelotti/splid_backend_clone/internal/http"
 	"github.com/antoniobelotti/splid_backend_clone/internal/person"
+	"github.com/antoniobelotti/splid_backend_clone/internal/transfer"
 	"github.com/stretchr/testify/suite"
 	psqlcont "github.com/testcontainers/testcontainers-go/modules/postgres"
 	"net/http"
@@ -36,7 +37,7 @@ func (suite *PersonHandlerTestSuite) SetupTest() {
 	suite.personService = person.NewService(db)
 	suite.groupService = group.NewService(db)
 
-	suite.server = internalHttp.NewRESTServer(suite.personService, suite.groupService)
+	suite.server = internalHttp.NewRESTServer(suite.personService, suite.groupService, transfer.Service{})
 }
 
 func (suite *PersonHandlerTestSuite) TestCreatePersonChecksValidation() {
