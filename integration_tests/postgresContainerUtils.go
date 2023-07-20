@@ -3,9 +3,11 @@ package integration_tests
 import (
 	"context"
 	"github.com/antoniobelotti/splid_backend_clone/internal/postgresdb"
+	"github.com/joho/godotenv"
 	"github.com/testcontainers/testcontainers-go"
 	postgrestc "github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
+	"log"
 	"time"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -15,6 +17,11 @@ import (
 )
 
 func GetCleanContainerizedPsqlDb() (*postgresdb.PostgresDatabase, *postgrestc.PostgresContainer) {
+	err := godotenv.Load("../../.env.dev")
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	ctx := context.Background()
 
 	container, err := postgrestc.RunContainer(ctx,
