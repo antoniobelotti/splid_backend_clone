@@ -26,6 +26,7 @@ func NewRESTServer(ps person.Service, gs group.Service, es expense.Service, ts t
 	{
 		groupEndpoints.POST("", authentication.AuthenticateMiddleware(), groupHandlers.handleCreateGroup)
 		groupEndpoints.POST("/:groupId/join", authentication.AuthenticateMiddleware(), groupHandlers.handleJoinGroup)
+		groupEndpoints.GET("/:groupId/balance", authentication.AuthenticateMiddleware(), groupHandlers.handleGetBalance)
 	}
 
 	personHandlers := NewPersonHandlers(ps)

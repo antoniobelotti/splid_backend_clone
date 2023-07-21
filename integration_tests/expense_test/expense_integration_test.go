@@ -1,3 +1,5 @@
+//go:build integration
+
 package expense_test
 
 import (
@@ -6,6 +8,7 @@ import (
 	"github.com/antoniobelotti/splid_backend_clone/internal/expense"
 	"github.com/antoniobelotti/splid_backend_clone/internal/group"
 	"github.com/antoniobelotti/splid_backend_clone/internal/person"
+	"github.com/antoniobelotti/splid_backend_clone/internal/transfer"
 	"github.com/stretchr/testify/suite"
 	psqlcont "github.com/testcontainers/testcontainers-go/modules/postgres"
 	"testing"
@@ -23,8 +26,8 @@ func (suite *ExpenseTestSuite) SetupTest() {
 	db, cont := integration_tests.GetCleanContainerizedPsqlDb()
 	suite.psqlContainer = cont
 	suite.expenseService = expense.NewService(db)
-	suite.groupService = group.NewService(db)
 	suite.personService = person.NewService(db)
+	suite.groupService = group.NewService(db, suite.expenseService, transfer.NewService(db))
 }
 
 func (suite *ExpenseTestSuite) TearDownTest() {

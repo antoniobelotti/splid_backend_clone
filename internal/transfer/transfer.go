@@ -16,6 +16,7 @@ type Transfer struct {
 type Store interface {
 	CreateTransfer(ctx context.Context, amountInCents int, groupId int, senderId int, receiverId int) (int, error)
 	IsPersonInGroup(ctx context.Context, groupId int, personId int) (bool, error)
+	GetTransfersByGroupId(ctx context.Context, groupId int) ([]Transfer, error)
 }
 
 type Service struct {
@@ -52,4 +53,8 @@ func (s *Service) CreateTransfer(ctx context.Context, amountInCents int, groupId
 	e.Id = id
 
 	return e, nil
+}
+
+func (s *Service) GetTransfersByGroupId(ctx context.Context, groupId int) ([]Transfer, error) {
+	return s.store.GetTransfersByGroupId(ctx, groupId)
 }

@@ -1,3 +1,5 @@
+//go:build integration
+
 package integration_tests
 
 import (
@@ -29,7 +31,7 @@ func GetCleanContainerizedPsqlDb() (*postgresdb.PostgresDatabase, *postgrestc.Po
 		postgrestc.WithDatabase("postgres"),
 		postgrestc.WithUsername("postgres"),
 		postgrestc.WithPassword("postgres"),
-		testcontainers.WithWaitStrategy(wait.ForLog("database system is ready to accept connections").WithOccurrence(2).WithStartupTimeout(5*time.Second)),
+		testcontainers.WithWaitStrategy(wait.ForLog("database system is ready to accept connections").WithOccurrence(2).WithStartupTimeout(20*time.Second)),
 	)
 	if err != nil {
 		panic(err.Error())

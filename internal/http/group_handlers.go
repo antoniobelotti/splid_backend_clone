@@ -75,3 +75,16 @@ func (h *GroupHandlers) handleJoinGroup(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "successfully joined group"})
 	return
 }
+
+func (h *GroupHandlers) handleGetBalance(ctx *gin.Context) {
+	groupId, err := strconv.Atoi(ctx.Param("groupId"))
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "malformed group id"})
+		return
+	}
+	balance, err := h.service.GetGroupBalance(ctx, groupId)
+	if err != nil {
+		//todo
+	}
+	ctx.JSON(http.StatusOK, balance)
+}

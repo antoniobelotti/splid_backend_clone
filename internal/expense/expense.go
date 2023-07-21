@@ -15,6 +15,7 @@ type Expense struct {
 type Store interface {
 	CreateExpense(ctx context.Context, AmountInCents int, PersonId int, GroupId int) (int, error)
 	IsPersonInGroup(ctx context.Context, groupId int, personId int) (bool, error)
+	GetExpenseByGroupId(ctx context.Context, groupId int) ([]Expense, error)
 }
 
 type Service struct {
@@ -46,4 +47,8 @@ func (s *Service) CreateExpense(ctx context.Context, AmountInCents int, PersonId
 	e.Id = id
 
 	return e, nil
+}
+
+func (s *Service) GetExpenseByGroupId(ctx context.Context, groupId int) ([]Expense, error) {
+	return s.store.GetExpenseByGroupId(ctx, groupId)
 }

@@ -36,7 +36,7 @@ func (suite *PersonHandlerTestSuite) SetupTest() {
 
 	suite.psqlContainer = cont
 	suite.personService = person.NewService(db)
-	suite.groupService = group.NewService(db)
+	suite.groupService = group.NewService(db, expense.NewService(db), transfer.NewService(db))
 
 	suite.server = internalHttp.NewRESTServer(suite.personService, suite.groupService, expense.Service{}, transfer.Service{})
 }

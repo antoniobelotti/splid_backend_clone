@@ -3,6 +3,7 @@ package postgresdb
 import (
 	"context"
 	"fmt"
+	"github.com/antoniobelotti/splid_backend_clone/internal/expense"
 )
 
 func (pg *PostgresDatabase) IsPersonInGroup(ctx context.Context, groupId int, personId int) (bool, error) {
@@ -31,4 +32,13 @@ func (pg *PostgresDatabase) CreateExpense(ctx context.Context, AmountInCents int
 	}
 
 	return expenseId, nil
+}
+
+func (pg *PostgresDatabase) GetExpenseByGroupId(ctx context.Context, groupId int) ([]expense.Expense, error) {
+	var expenses []expense.Expense
+	err := pg.SelectContext(ctx, &expenses, `SELECT * FROM expense WHERE group_id=$1`, groupId)
+	if err != nil {
+		return nil, err
+	}
+	return expenses, nil
 }

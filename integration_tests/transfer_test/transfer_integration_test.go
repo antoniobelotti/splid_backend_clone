@@ -1,8 +1,11 @@
+//go:build integration
+
 package transfer_test
 
 import (
 	"context"
 	"github.com/antoniobelotti/splid_backend_clone/integration_tests"
+	"github.com/antoniobelotti/splid_backend_clone/internal/expense"
 	"github.com/antoniobelotti/splid_backend_clone/internal/group"
 	"github.com/antoniobelotti/splid_backend_clone/internal/person"
 	"github.com/antoniobelotti/splid_backend_clone/internal/transfer"
@@ -23,7 +26,7 @@ func (suite *TransferTestSuite) SetupTest() {
 	db, cont := integration_tests.GetCleanContainerizedPsqlDb()
 	suite.psqlContainer = cont
 	suite.transferService = transfer.NewService(db)
-	suite.groupService = group.NewService(db)
+	suite.groupService = group.NewService(db, expense.NewService(db), transfer.NewService(db))
 	suite.personService = person.NewService(db)
 }
 

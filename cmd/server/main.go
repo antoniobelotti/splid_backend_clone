@@ -19,9 +19,9 @@ func Run() error {
 	fmt.Println("successfully connected to db")
 
 	ps := person.NewService(db)
-	gs := group.NewService(db)
 	es := expense.NewService(db)
 	ts := transfer.NewService(db)
+	gs := group.NewService(db, es, ts)
 
 	restServer := http.NewRESTServer(ps, gs, es, ts)
 	err = restServer.Run(":" + os.Getenv("HTTP_PORT"))
