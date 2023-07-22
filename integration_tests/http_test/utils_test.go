@@ -7,9 +7,11 @@ import (
 	"encoding/json"
 	"fmt"
 	internal_http "github.com/antoniobelotti/splid_backend_clone/internal/http"
+	"github.com/antoniobelotti/splid_backend_clone/internal/person"
 	"github.com/stretchr/testify/suite"
 	"net/http"
 	"net/http/httptest"
+	"time"
 )
 
 type testSuiteHttp struct {
@@ -62,4 +64,27 @@ func ExtractBody[T any](rr *httptest.ResponseRecorder) T {
 	var body T
 	_ = json.Unmarshal(rr.Body.Bytes(), &body)
 	return body
+}
+
+// GetLoggedInPerson performs an authentication flow and returns the Person struct plus valid jwt token
+func (suite *testSuiteHttp) GetLoggedInPerson() (person.Person, string) {
+
+	// try to prevent PK and unique constraints violations
+	rs := time.Now().Unix()
+
+	signupResponse := suite.POST("/api/v1/person/signup", internal_http.CreatePersonRequestBody{
+		Name:            fmt.Sprintf("test person %d", rs),
+		Email:           fmt.Sprintf("main%d@mail.com", rs),
+		Password:        "password123",
+		ConfirmPassword: "password123",
+	})
+	p := ExtractBody[person.Person](signupResponse)
+
+	loginResponse := suite.POST("/api/v1/person/login", internal_http.LoginRequestBody{
+		Email:    p.Email,
+		Password: "password123",
+	})
+	loginRespBody := ExtractBody[internal_http.LoginResponseBody](loginResponse)
+
+	return p, loginRespBody.SignedToken
 }
