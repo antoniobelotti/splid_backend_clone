@@ -88,3 +88,19 @@ func (h *GroupHandlers) handleGetBalance(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, balance)
 }
+
+func (h *GroupHandlers) handleGetOpsEvenBalance(ctx *gin.Context) {
+	groupId, err := strconv.Atoi(ctx.Param("groupId"))
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "malformed group id"})
+		return
+	}
+
+	// !! the returned Transfer structs have Id and GroupId set to 0
+	// because they are not actually made by the users.
+	// These are the SUGGESTED transfers to even out the balance
+	ops, err := h.service.GetOpsEvenBalance(ctx, groupId)
+
+	// it works as long as groupId and id have omitempty tag in transfer.Transfer
+	ctx.JSON(http.StatusOK, ops)
+}

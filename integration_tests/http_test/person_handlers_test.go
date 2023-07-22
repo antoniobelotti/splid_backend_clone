@@ -118,7 +118,7 @@ func (suite *PersonHandlerTestSuite) TestCreatePersonChecksValidation() {
 	}
 }
 
-func (suite *PersonHandlerTestSuite) TestCreatePerson() {
+func (suite *PersonHandlerTestSuite) TestPersonSignup() {
 	table := []struct {
 		requestBody    internalHttp.CreatePersonRequestBody
 		respHttpStatus int

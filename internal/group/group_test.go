@@ -82,3 +82,25 @@ func TestCalculateGroupBalance(t *testing.T) {
 		assert.Equal(t, expectedBalance[p], b, fmt.Sprintf("for person %d epected balance %d but got %d instead", p, expectedBalance[p], b))
 	}
 }
+
+func TestCalculateOpsToEvenBalance(t *testing.T) {
+	//	expenses {
+	//		1: 650,
+	//		2: 200,
+	//		3: 505,
+	//		4: 13,
+	//	}
+	currentBalance := map[int]int{
+		1: 308,
+		2: -142,
+		3: 163,
+		4: -329,
+	}
+	expectedOps := []transfer.Transfer{
+		{AmountInCents: 142, SenderId: 2, ReceiverId: 3},
+		{AmountInCents: 21, SenderId: 4, ReceiverId: 3},
+		{AmountInCents: 308, SenderId: 4, ReceiverId: 1},
+	}
+	ops := calculateOpsToEvenBalance(currentBalance)
+	assert.Equal(t, expectedOps, ops)
+}

@@ -6,9 +6,9 @@ import (
 )
 
 type Transfer struct {
-	Id            int `json:"id" db:"id"`
+	Id            int `json:"id,omitempty" db:"id"`
 	AmountInCents int `json:"amount-in-cents" db:"amount_in_cents"`
-	GroupId       int `json:"group-id" db:"group_id"`
+	GroupId       int `json:"group-id,omitempty" db:"group_id"`
 	SenderId      int `json:"sender-id" db:"sender_id"`
 	ReceiverId    int `json:"receiver-id" db:"receiver_id"`
 }
